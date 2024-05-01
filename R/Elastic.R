@@ -1,12 +1,12 @@
 Elastic_net <- function(X, y, alpha = NULL, lambda = NULL, nfolds = 10, family = NULL) {
   
   # Check data integrity
-  if (!is.matrix(X)) {
-    stop("X must be a matrix.")
-  }
-  if (!is.vector(y) && !is.factor(y)) {
-    stop("y must be a vector or factor.")
-  }
+  #if (!is.matrix(X)) {
+   # stop("X must be a matrix.")
+  #}
+  #if (!is.vector(y) && !is.factor(y)) {
+  #  stop("y must be a vector or factor.")
+  #}
   if (any(is.na(X))) {
     stop("X contains missing values. Please handle missing data before proceeding.")
   }
