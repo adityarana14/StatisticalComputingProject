@@ -35,11 +35,12 @@ autoPreScreenPredictors <- function(X, y, k = 10) {
     predictor = X[[i]]
     predictor_name = colnames(X)[i]
     
-    if (is.numeric(predictor) && is_y_numeric) {
-      # Continuous predictor with continuous response - Pearson Correlation
-      test = cor.test(predictor, y)
+    if (is.numeric(predictor) && (is.factor(y) || 
+                                       length(unique(y)) == 2)) {
+      # Binary predictor with continuous response
+      test = t.test(predictor ~ y)
       test_results$p_value[i] = test$p.value
-      test_results$method[i] = "Pearson Correlation"
+      test_results$method[i] = "T-test"
     } else if (is.factor(predictor) || is.character(predictor)) {
       if (is_y_numeric) {
         # Categorical predictor with continuous response - ANOVA
@@ -60,12 +61,12 @@ autoPreScreenPredictors <- function(X, y, k = 10) {
         test = t.test(predictor ~ y)
         test_results$p_value[i] = test$p.value
         test_results$method[i] = "T-test"
-      } else if (is.numeric(predictor) && is.factor(y) && 
-                 length(unique(y)) == 2) {
-        # Binary predictor with continuous response
-        test = t.test(predictor ~ y)
+      } 
+      else if (is.numeric(predictor) && is_y_numeric) {
+        # Continuous predictor with continuous response - Pearson Correlation
+        test = cor.test(predictor, y)
         test_results$p_value[i] = test$p.value
-        test_results$method[i] = "T-test"
+        test_results$method[i] = "Pearson Correlation"
       }
     }
   }
