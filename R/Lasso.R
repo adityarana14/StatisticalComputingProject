@@ -75,6 +75,9 @@ autoLassoRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FA
     # Average the predictions across all bags
     final_predictions <- rowMeans(predictions)
     cat("Bagging complete. Averaged predictions from", n_bags, "models.\n")
+    # Report importance scores for each variable
+    names(importance_scores) <- colnames(X)
+    return(list(model = model, type = family, predictions = final_predictions, importance_scores = importance_scores))
   } else {
     # Fit single model if bagging is not used
     if (is.null(lambda)) {
@@ -84,10 +87,7 @@ autoLassoRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FA
     }
     model <- glmnet(X, y, family = glmnet_family, lambda = lambda, alpha = 1)
     final_predictions <- predict(model, newx = X, type = "response", s = lambda)
+    return(list(model = model, type = family, predictions = final_predictions))
   }
-
-  # Report importance scores for each variable
-  names(importance_scores) <- colnames(X)
-  return(list(model = model, type = family, predictions = final_predictions, importance_scores = importance_scores))
 }
 
