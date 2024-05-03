@@ -124,7 +124,7 @@ autoLinearRegression <- function(X, y, bagging = FALSE, B = 100) {
   est <- coef(lm(y ~ (.), data = df))
 
   if (bagging) {
-    est.b <- matrix(NA, nrow = p+1, ncol = B)
+    est.b <- matrix(NA, nrow = length(est), ncol = B)  # Initialize est.b with correct dimensions
     for (i in 1:B) {
       idx <- sample(1:n, n, replace = TRUE)
       df.b <- df[idx, ]
