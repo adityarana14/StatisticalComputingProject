@@ -117,8 +117,11 @@ autoLinearRegression <- function(X, y, bagging = FALSE, B = 100) {
       cat("The number of top predictors must be less than the number of predictors.\n")
       k <- as.integer(readline(prompt = "Enter the number of top predictors to select: "))
     }
-    res <- get_top_k_predictors(X, y, k)$Top_Predictors$Predictor
-    df <- df[, c("y", res)]
+
+    res <- autoPreScreenPredictors(X, y, k)
+    res <- res$predictor
+    df <- df[, c("y", res), drop = FALSE]
+
   }
 
   est <- coef(lm(y ~ (.), data = df))
