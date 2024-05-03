@@ -57,9 +57,11 @@ print(nrow(result$model$X))
 
 If bagging = TRUE, the function creates multiple bootstrapped samples and fits a lasso regression model to each. This process allows you to assess the variability of coefficients across models and derive importance scores to identify which predictors are consistently selected.
 
-Bootstrapped Samples: Given a dataset with n observations, a bootstrapped sample is created by selecting n observations with replacement. This process allows some observations to be selected multiple times, while others might not be selected at all.
-Fitting Models: Once you have a set of bootstrapped samples, a model (in this case, lasso regression) is fitted to each sample. Because each sample is different due to random sampling, the resulting models can vary, reflecting different perspectives on the underlying data.
-Combining Results: After fitting models to multiple bootstrapped samples, the results are combined to create a more robust output. This combining process is central to bagging, where the goal is to reduce variance by leveraging the diversity of the bootstrapped samples.
+**Bootstrapped Samples:** Given a dataset with n observations, a bootstrapped sample is created by selecting n observations with replacement. This process allows some observations to be selected multiple times, while others might not be selected at all.
+
+**Fitting Models:** Once you have a set of bootstrapped samples, a model (in this case, lasso regression) is fitted to each sample. Because each sample is different due to random sampling, the resulting models can vary, reflecting different perspectives on the underlying data.
+
+**Combining Results:** After fitting models to multiple bootstrapped samples, the results are combined to create a more robust output. This combining process is central to bagging, where the goal is to reduce variance by leveraging the diversity of the bootstrapped samples.
 
 
 ## Combining Results from Bagged Models
