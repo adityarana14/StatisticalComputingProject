@@ -1,0 +1,67 @@
+---
+title: "StatisticalLearning"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{StatisticalLearning}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(TopK)
+```
+
+# Introduction
+
+The "statisstical learning" package offers a collection of statistical models for regression analysis, including Ridge, Lasso, Elastic Net, Linear, Logistic, and Random Forest regression. This vignette serves as an introduction to the package, explaining the various functions it provides and offering links to detailed vignettes for each regression type.
+
+# Overview of Functions
+
+The package includes several regression functions to suit different analysis needs:
+
+- **autoRidgeRegression**:
+  - Implements Ridge regression, which uses L2 regularization to prevent overfitting by controlling the size of coefficients. This function is suitable for regression tasks with high-dimensional data or where multicollinearity might be an issue.
+  - The function also supports bagging, allowing you to create more robust models by averaging predictions from multiple bootstrapped samples.
+  
+  - For more information, see [Vignette on Ridge Regression](./vignettes/autoRidgeRegression.html).
+
+- **autoLassoRegression**:
+  - Performs Lasso regression, which uses L1 regularization to encourage sparsity in the model. Lasso regression is ideal when you want to perform feature selection, as it tends to zero out less important coefficients.
+  - Like Ridge, it also supports bagging for enhanced robustness.
+
+  - For more information, see [Vignette on Lasso Regression](./vignettes/autoLassoRegression.html).
+
+- **autoElasticRegression**:
+  - Combines the features of Ridge and Lasso, allowing for a balance between L1 and L2 regularization. This flexibility makes it suitable for a wide range of regression tasks.
+  - The function can determine optimal lambda and alpha parameters through cross-validation
+  - For more information, see [Vignette on Elastic Net](./vignettes/autoElasticRegression.html).
+
+- **autoLinearRegression**:
+  - A basic linear regression function, ideal for simple linear relationships between predictors and a continuous response variable. It provides a straightforward way to fit and evaluate linear models.
+
+  - For more information, see [Vignette on Linear Regression](./vignettes/autoLogisticRegression.html).
+  
+- **autoLogisticRegression**:
+  - Fits a logistic regression model, typically used for binary classification tasks. Logistic regression estimates the probability of a binary outcome, allowing for the calculation of odds ratios and other related metrics.
+  - The function supports bagging, which can improve robustness in prediction.
+ Regression](./vignettes/autoLogisticRegression.html).
+
+- **random_forest**:
+  - Implements Random Forest, an ensemble method based on multiple decision trees. It can be used for both regression and classification, offering flexibility and robustness through ensemble learning.
+  - Random Forest is known for its ability to handle complex relationships and provide feature importance metrics.
+  - For more information, see [Vignette on Random Forest](./vignettes/randomForest.html).
+
+## Conclusion
+
+This vignette introduced the "statisstical learning" package, outlining the various regression functions it provides. Each function has specific use cases, and the package offers a comprehensive set of tools for regression analysis.
+
+To learn more about each function, follow the links to detailed vignettes that cover specific regression types. These vignettes offer in-depth explanations and examples, providing a deeper understanding of how to use each function in different scenarios.
+
+
