@@ -1,0 +1,122 @@
+---
+title: "autoElasticRegression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{autoElasticRegression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(TopK)
+```
+
+## Introduction
+
+The `autoElasticRegression` function fits an Elastic Net regression model to a given dataset, with optional bagging to improve model robustness and reduce variance. Elastic Net combines Lasso (L1 regularization) and Ridge (L2 regularization), offering a flexible approach to feature selection and regularization. This vignette demonstrates how to use the function with bagging, and explains how to combine results from multiple bagged models for stable and robust outcomes.
+
+## Function Overview
+
+The `autoElasticRegression` function can fit Elastic Net regression with or without bagging. Bagging (Bootstrap Aggregating) creates multiple bootstrapped samples, fits separate models to each, and averages their results to reduce variance. This vignette shows how to use the function and explains the benefits of bagging in this context.
+
+## Parameters
+
+- **X**: A data frame or matrix containing the predictor variables.
+- **y**: A vector representing the response variable, which can be binary or continuous.
+- **lambda**: The regularization parameter for Elastic Net. If `NULL`, it will be calculated using cross-validation.
+- **alpha**: The mixing parameter for Elastic Net, ranging from 0 (Ridge) to 1 (Lasso). If `NULL`, it's determined using cross-validation.
+- **family**: The type of response variable. Can be `"binary"` for logistic regression or `"gaussian"` for linear regression.
+- **bagging**: Logical indicating whether to use bagging (default is `FALSE`).
+- **n_bags**: The number of bootstrapped samples for bagging (default is `50`).
+
+## Handling Missing Data
+
+The function checks for missing data in `X` and `y`. If any missing values are found, the corresponding rows are removed to ensure a clean dataset for model fitting.
+
+
+```{r}
+# Example data with missing values
+X <- data.frame(
+  x1 = c(1, 2, NA, 4, 5),
+  x2 = c(6, NA, 8, 9, 10)
+)
+y <- c(1, 0, 1, 0, NA)
+
+# Applying autoElasticRegression
+result <- autoElasticRegression(X, y, bagging = FALSE)
+
+print("Number of rows after handling missing data:")
+print(nrow(result$model))
+
+```
+
+## Bagging Process
+
+If bagging = TRUE, the function creates n_bags bootstrapped samples by randomly selecting rows with replacement from the original dataset. It fits an Elastic Net regression model to each sample, allowing you to calculate the standard deviations of coefficients and derive importance scores for predictors.
+
+If bagging = TRUE, the function creates multiple bootstrapped samples and fits a lasso regression model to each. This process allows you to assess the variability of coefficients across models and derive importance scores to identify which predictors are consistently selected.
+
+**Bootstrapped Samples:** Given a dataset with n observations, a bootstrapped sample is created by selecting n observations with replacement. This process allows some observations to be selected multiple times, while others might not be selected at all.
+
+**Fitting Models:** Once you have a set of bootstrapped samples, a model (in this case, lasso regression) is fitted to each sample. Because each sample is different due to random sampling, the resulting models can vary, reflecting different perspectives on the underlying data.
+
+**Combining Results:** After fitting models to multiple bootstrapped samples, the results are combined to create a more robust output. This combining process is central to bagging, where the goal is to reduce variance by leveraging the diversity of the bootstrapped samples.
+
+```{r}
+
+
+
+# Generate synthetic data
+set.seed(123)
+n <- 100
+p <- 5
+X <- matrix(rnorm(n * p), n, p)
+y <- 1 + X[,1] - 2 * X[,2] + rnorm(n)
+colnames(X) <- paste0("Var", 1:ncol(X))
+
+# Use the function without bagging
+result_without_bagging <- autoRidgeRegression(y = y, X = X, family = 'continuous')
+print(result_without_bagging$model)
+
+
+
+```
+
+
+
+## Combining Results from Bagged Models
+When bagging is enabled, autoElasticRegression creates n_bags bootstrapped samples, fitting an Elastic Net regression model to each. The results are combined to create final predictions and importance scores.
+
+**Averaging Predictions:**
+Final predictions are derived by averaging the predictions from all bagged models. This approach reduces individual model variance, providing more stable outcomes.
+**Importance Scores:**
+Importance scores are calculated by counting how many times each predictor is selected with a non-zero coefficient across all bagged models. This gives insights into which predictors are most consistently contributing to the model's outcome.
+
+```{r}
+
+# Use the function with bagging
+
+# Example with 50 bootstrapped samples
+
+result_with_bagging <- autoRidgeRegression(y = y, X = X, family = 'continuous', bagging = TRUE, n_bags = 50)
+# Display final predictions from all bagged models
+print("Final predictions from bagged models:")
+print(head(result_with_bagging$predictions))# Print first 5 predictions
+
+# Display importance scores
+print("Importance scores for predictors:") # Print importance scores
+print(result_with_bagging$importance_scores)
+```
+
+
+## Final Thoughts
+
+The autoElasticRegression function provides a flexible approach to Elastic Net regression with optional bagging. This vignette has shown how to use the function, interpret its results, and understand the benefits of bagging in providing robust model outputs. By examining the importance scores and final predictions, you can gain insights into which predictors are most significant and how bagging contributes to model stability and robustness.
+
