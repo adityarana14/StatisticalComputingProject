@@ -1,18 +1,48 @@
-library(glmnet)
-
-#' Auto Ridge Regression Model with Simplified Family Input
+#' Auto Ridge Regression Model with Optional Bagging
 #'
-#' This function accepts a simplified family input ('binary' or 'continuous'), detects
-#' the type of the response variable accordingly, handles missing values, and 
-#' chooses the appropriate ridge regression model. It selects the best lambda 
-#' using cross-validation if not provided.
+#' This function performs ridge regression with the ability to handle missing data,
+#' automatically detect the type of the response variable (binary or continuous),
+#' and optionally use bagging to enhance model robustness. Bagging involves fitting
+#' multiple models on bootstrap samples and averaging their predictions.
 #'
-#' @param y response variable, either binary or continuous
-#' @param X matrix of predictors
-#' @param lambda regularization parameter, optional
-#' @param family optional; simplified input 'binary' or 'continuous'
-#' @return a list containing the model and its type
-autoRidgeRegression <- function(y, X, lambda = NULL, family = NULL) {
+#' @param y A vector representing the response variable, which can be binary or continuous.
+#' @param X A matrix of predictors.
+#' @param lambda A numeric value representing the regularization parameter.
+#'        If NULL, the optimal lambda is chosen via cross-validation.
+#' @param family A character string specifying the model family.
+#'        Accepts 'binary' or 'continuous', which are automatically detected if not provided.
+#' @param bagging A logical indicating whether bagging should be used.
+#'        Defaults to FALSE.
+#' @param n_bags An integer specifying the number of bootstrap samples to use if bagging is TRUE.
+#'        Defaults to 100.
+#' @return A list containing the following components:
+#'         \itemize{
+#'           \item{model}{The fitted glmnet model object.}
+#'           \item{type}{The detected or specified family of the response variable.}
+#'           \item{predictions}{Predicted values using the fitted model.}
+#'           \item{importance_scores}{A numeric vector of importance scores for each predictor,
+#'           indicating how often each predictor was selected in the models from the bagging process.}
+#' }
+#' @examples
+#' \dontrun{
+#'   # Generate synthetic data
+#'   set.seed(123)
+#'   n <- 100
+#'   p <- 5
+#'   X <- matrix(rnorm(n * p), n, p)
+#'   y <- 1 + X[,1] - 2 * X[,2] + rnorm(n)
+#'   colnames(X) <- paste0("Var", 1:ncol(X))
+#'
+#'   # Use the function without bagging
+#'   result_without_bagging <- autoRidgeRegression(y = y, X = X, family = 'continuous')
+#'   print(result_without_bagging$model)
+#'
+#'   # Use the function with bagging
+#'   result_with_bagging <- autoRidgeRegression(y = y, X = X, family = 'continuous', bagging = TRUE, n_bags = 50)
+#'   print(head(result_with_bagging$predictions))  # Print first 5 predictions
+#'   print(result_with_bagging$importance_scores)  # Print importance scores
+#' }
+autoRidgeRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FALSE, n_bags = 100) {
   # Handle missing data in X and y
   missing_data <- sum(is.na(X)) + sum(is.na(y))
   if (missing_data > 0) {
@@ -22,13 +52,13 @@ autoRidgeRegression <- function(y, X, lambda = NULL, family = NULL) {
     y <- y[-na_indices]
     cat("Missing values removed:", length(na_indices), "\n")
   }
-  
+
   # Auto-detect data type based on unique values
   detected_type <- ifelse(length(unique(y)) == 2 && all(unique(as.numeric(y)) %in% c(0, 1)), "binary", "continuous")
-  
+
   # Map 'binary' to 'binomial' and 'continuous' to 'gaussian' for glmnet usage
   glmnet_family <- ifelse(detected_type == "binary", "binomial", "gaussian")
-  
+
   # Verify provided family against detected type
   if (!is.null(family)) {
     if (!tolower(family) %in% c("binary", "continuous")) {
@@ -42,21 +72,49 @@ autoRidgeRegression <- function(y, X, lambda = NULL, family = NULL) {
     family <- detected_type
     cat("Family auto-detected as: ", family, "\n")
   }
-  
-  # If lambda is not provided, use cross-validation to find the optimal lambda
-  if (is.null(lambda)) {
-    cv_model <- cv.glmnet(X, y, family = glmnet_family, alpha = 0)
-    lambda <- cv_model$lambda.min
-    cat("Optimal lambda determined by CV:", lambda, "\n")
+
+  # Initialize importance scores
+  importance_scores <- rep(0, ncol(X))
+
+  # Initialize predictions
+  predictions <- matrix(0, nrow = nrow(X), ncol = n_bags)
+
+  if (bagging) {
+    for (i in 1:n_bags) {
+      # Sample with replacement
+      indices <- sample(1:nrow(X), replace = TRUE)
+      X_bag <- X[indices, , drop = FALSE]
+      y_bag <- y[indices]
+
+      # Fit the model on the bagged sample
+      if (is.null(lambda)) {
+        cv_model <- cv.glmnet(X_bag, y_bag, family = glmnet_family, alpha = 0)
+        lambda <- cv_model$lambda.min
+      }
+      model <- glmnet(X_bag, y_bag, family = glmnet_family, lambda = lambda, alpha = 0)
+
+      # Update importance scores
+      coef_matrix <- coef(model, s = lambda)
+      importance_scores <- importance_scores + (coef_matrix[-1] != 0)  # Exclude intercept
+
+      # Predict using the original X
+      predictions[, i] <- predict(model, newx = X, type = "response", s = lambda)
+    }
+    # Average the predictions across all bags
+    final_predictions <- rowMeans(predictions)
+    cat("Bagging complete. Averaged predictions from", n_bags, "models.\n")
+  } else {
+    # Fit single model if bagging is not used
+    if (is.null(lambda)) {
+      cv_model <- cv.glmnet(X, y, family = glmnet_family, alpha = 0)
+      lambda <- cv_model$lambda.min
+      cat("Optimal lambda determined by CV:", lambda, "\n")
+    }
+    model <- glmnet(X, y, family = glmnet_family, lambda = lambda, alpha = 0)
+    final_predictions <- predict(model, newx = X, type = "response", s = lambda)
   }
-  
-  # Fit the model using the specified or chosen lambda
-  model <- glmnet(X, y, family = glmnet_family, lambda = lambda, alpha = 0)
-  
-  # Print the model's non-zero coefficients
-  fitCoefs <- coef(model)
-  terms <- which(fitCoefs != 0)
-  cat("\nThe predictors retained in the final model are:\n", names(fitCoefs[terms]), "\n")
-  
-  return(list(model = model, type = family))
+
+  # Report importance scores for each variable
+  names(importance_scores) <- colnames(X)
+  return(list(model = model, type = family, predictions = final_predictions, importance_scores = importance_scores))
 }

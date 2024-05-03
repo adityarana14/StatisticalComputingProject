@@ -1,4 +1,4 @@
-autoRidgeRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FALSE, n_bags = 100) {
+autoLassoRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FALSE, n_bags = 100) {
   # Handle missing data in X and y
   missing_data <- sum(is.na(X)) + sum(is.na(y))
   if (missing_data > 0) {
@@ -44,10 +44,10 @@ autoRidgeRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FA
 
       # Fit the model on the bagged sample
       if (is.null(lambda)) {
-        cv_model <- cv.glmnet(X_bag, y_bag, family = glmnet_family, alpha = 0)
+        cv_model <- cv.glmnet(X_bag, y_bag, family = glmnet_family, alpha = 1)
         lambda <- cv_model$lambda.min
       }
-      model <- glmnet(X_bag, y_bag, family = glmnet_family, lambda = lambda, alpha = 0)
+      model <- glmnet(X_bag, y_bag, family = glmnet_family, lambda = lambda, alpha = 1)
 
       # Update importance scores
       coef_matrix <- coef(model, s = lambda)
@@ -62,11 +62,11 @@ autoRidgeRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FA
   } else {
     # Fit single model if bagging is not used
     if (is.null(lambda)) {
-      cv_model <- cv.glmnet(X, y, family = glmnet_family, alpha = 0)
+      cv_model <- cv.glmnet(X, y, family = glmnet_family, alpha = 1)
       lambda <- cv_model$lambda.min
       cat("Optimal lambda determined by CV:", lambda, "\n")
     }
-    model <- glmnet(X, y, family = glmnet_family, lambda = lambda, alpha = 0)
+    model <- glmnet(X, y, family = glmnet_family, lambda = lambda, alpha = 1)
     final_predictions <- predict(model, newx = X, type = "response", s = lambda)
   }
 
@@ -74,3 +74,4 @@ autoRidgeRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FA
   names(importance_scores) <- colnames(X)
   return(list(model = model, type = family, predictions = final_predictions, importance_scores = importance_scores))
 }
+
