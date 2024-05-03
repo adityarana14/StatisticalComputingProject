@@ -45,7 +45,6 @@ autoLogisticRegression <- function(X, y, bagging = FALSE, B = 100) {
     cat(sprintf("Response variable y converted to numeric: %s as 0, %s as 1.\n", levels[1], levels[2]))
   }
 
-  print(y)
   df <- data.frame(y, X)
 
   # Check predictor count versus observation count
@@ -95,44 +94,5 @@ autoLogisticRegression <- function(X, y, bagging = FALSE, B = 100) {
 
   return(r)
 }
-
-
-set.seed(42)  # For reproducibility
-# Number of samples
-num_samples <- 100
-
-# Create continuous predictors
-continuous_predictors <- data.frame(
-  Age = rnorm(num_samples, mean = 30, sd = 10),  # Normally distributed
-  Salary = rnorm(num_samples, mean = 50000, sd = 15000),  # Normally distributed
-  Height = rnorm(num_samples, mean = 170, sd = 10)  # Normally distributed
-)
-
-# Create discrete predictors
-discrete_predictors <- data.frame(
-  Children = rpois(num_samples, lambda = 2),  # Poisson distribution
-  Siblings = sample(0:5, num_samples, replace = TRUE)  # Random integers
-)
-
-# Create binary predictors
-binary_predictors <- data.frame(
-  OwnsCar = rbinom(num_samples, 1, 0.5),  # 0 or 1 with equal probability
-  Gender = factor(sample(c("Male", "Female"), num_samples, replace = TRUE)),  # Factor with two levels
-  Married = sample(c("Yes", "No"), num_samples, replace = TRUE)  # Factor with two levels
-)
-
-# Combine all predictors into one data frame
-mixed_data <- cbind(continuous_predictors, discrete_predictors, binary_predictors)
-
-# Check the first few rows of the dataset
-head(mixed_data)
-dim(mixed_data)
-
-Response_Continuous <- 10000 + 100 * mixed_data$Salary + rnorm(nrow(mixed_data), mean = 0, sd = 5000)
-Response_Binary <- ifelse(mixed_data$Age > 30, 1, 0)
-
-res_continuous_bagging = autoLogisticRegression(mixed_data, Response_Binary, bagging = TRUE)
-res_continous = autoLogisticRegression(mixed_data, Response_Binary, bagging = FALSE)
-
 
 

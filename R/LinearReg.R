@@ -97,7 +97,7 @@ autoLinearRegression <- function(X, y, bagging = FALSE, B = 100) {
   }
 
   if (length(unique(y)) == 2) {
-    warning("The response variable is binary, should apply logistic regression. Use the function \"logr()\".")
+    stop("The response variable is binary, should apply logistic regression. Use the function \"autoLogisticRegression()\".")
   }
 
   df <- data.frame(y, X)

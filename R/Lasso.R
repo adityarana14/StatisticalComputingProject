@@ -1,4 +1,9 @@
 autoLassoRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FALSE, n_bags = 100) {
+
+  if (is.data.frame(X)) {
+    X <- as.matrix(X)
+  }
+
   # Handle missing data in X and y
   missing_data <- sum(is.na(X)) + sum(is.na(y))
   if (missing_data > 0) {
@@ -7,6 +12,17 @@ autoLassoRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FA
     X <- X[-na_indices, , drop = FALSE]
     y <- y[-na_indices]
     cat("Missing values removed:", length(na_indices), "\n")
+  }
+
+  unique_y <- unique(y)
+  if (length(unique_y) == 2) {
+    if (!is.numeric(y)) {
+      # Explicitly map the two unique levels to 0 and 1
+      levels <- sort(unique_y)  # Sort to ensure consistent mapping
+      y <- factor(y, levels = levels)
+      y <- as.integer(y) - 1  # Convert factor to integer and adjust to 0 and 1
+      cat(sprintf("Response variable y converted to numeric: %s as 0, %s as 1.\n", levels[1], levels[2]))
+    }
   }
 
   # Auto-detect data type based on unique values
