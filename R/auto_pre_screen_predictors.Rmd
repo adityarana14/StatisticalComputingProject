@@ -1,0 +1,108 @@
+---
+title: "Auto pre screening predictors"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Auto pre screening predictors}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(TopK)
+```
+
+### Overview
+
+The pre_screen_predictors function is designed to identify the most informative predictors in a dataset for a given response variable. It applies appropriate statistical tests based on the types of predictors and the response variable to determine the strength of the relationships. This vignette uses a sample dataset with various predictor types to demonstrate how the function works and which statistical tests are applied.
+
+### Functionality
+
+The function performs the following steps:
+
+Pre-processing: Removes rows with missing values, issuing a warning if any NAs are found.
+Statistical Tests: Applies different statistical tests depending on the type of predictor and response:
+Pearson Correlation for continuous predictors with continuous responses.
+T-test for binary predictors with continuous responses and continuous predictors with binary responses.
+ANOVA for categorical predictors with more than two levels and continuous responses.
+Chi-squared Test for categorical predictors with categorical responses.
+Selection of Top Predictors: Returns the top K predictors based on the lowest p-values.
+
+### Example Data
+
+To illustrate the function's usage, let's create a sample dataset with various predictor types and a continuous response variable (y_continuous) and a binary response variable (y_binary).
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Define continuous predictors
+X1 <- rnorm(100, mean = 50, sd = 10)  # continuous variable
+X2 <- rnorm(100, mean = 100, sd = 15)
+
+# Define binary predictors
+X3 <- sample(c("GroupA", "GroupB"), 100, replace = TRUE)  # categorical binary
+X4 <- rbinom(100, 1, 0.5)  # numerical binary (0/1)
+
+# Define categorical predictor with more than 2 levels
+X5 <- sample(c("Red", "Green", "Blue"), 100, replace = TRUE)
+
+# Define response variables
+y_continuous <- rnorm(100, mean = 75, sd = 20)  # continuous response
+y_binary <- sample(c("Yes", "No"), 100, replace = TRUE)  # binary response
+
+# Create data frame with predictors
+data <- data.frame(X1, X2, X3, X4, X5, y_continuous, y_binary)
+
+```
+
+### Applying the Function 
+
+Using this data, let's apply the pre_screen_predictors function to identify the top 3 predictors for both the continuous and binary response variables.
+
+#### Continuous Response Example
+
+```{r}
+# Get top 3 predictors for continuous response
+result_continuous <- auto_pre_screen_predictors(data[, c("X1", "X2", "X3", "X4", "X5")], y_continuous, k = 3)
+
+# Display results
+print("Results for Continuous Response:")
+print(result_continuous)
+
+```
+
+In this example, we have a continuous response variable (y_continuous). The function will apply Pearson Correlation for continuous predictors, ANOVA for categorical predictors, and T-test for binary predictors with continuous responses.
+
+### Binary Response Example
+
+```{r}
+# Get top 3 predictors for binary response
+result_binary <- auto_pre_screen_predictors(data[, c("X1", "X2", "X3", "X4", "X5")], y_binary, k = 3)
+
+# Display results
+print("Results for Binary Response:")
+print(result_binary)
+
+```
+
+Here, we have a binary response variable (y_binary). The function applies Chi-squared Test for categorical predictors and T-test for continuous predictors with binary responses.
+
+### Interpretation of Results
+Given the example data, the function should return results indicating the most significant predictors based on p-values and the statistical test applied.
+
+#### Continuous Response:
+The predictors with the lowest p-values are likely to have stronger associations with the response. Pearson Correlation is used for continuous predictors like X1 and X2. ANOVA is used for categorical predictors like X5.
+
+#### Binary Response:
+For binary responses, Chi-squared Test is used for categorical predictors like X3 and X5. T-test is used for continuous predictors like X4 and X2.
+
+### Conclusion
+
+The pre_screen_predictors function provides a way to identify the most significant predictors in a dataset for a given response variable, using appropriate statistical tests. This vignette demonstrates its application to a sample dataset and explains the results, helping users understand which predictors are most relevant for further analysis or modeling.
