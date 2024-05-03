@@ -36,7 +36,7 @@ autoPreScreenPredictors <- function(X, y, k=10) {
     predictor = X[[i]]
     predictor_name = colnames(X)[i]
     
-    if (is.numeric(predictor) && is_y_numeric) {
+    if (is.numeric(predictor) && is_y_numeric && length(unique(y)) != 2 && length(unique(predictor)) != 2) {
       # Continuous predictor with continuous response - Pearson Correlation
       test = cor.test(predictor, y)
       test_results$p_value[i] = test$p.value
@@ -51,7 +51,7 @@ autoPreScreenPredictors <- function(X, y, k=10) {
       test = chisq.test(table(predictor, y))
       test_results$p_value[i] = test$p.value
       test_results$method[i] = "Chi-squared Test"
-    } else if (is.numeric(predictor) && !is_y_numeric) {
+    } else if ((is.numeric(predictor) && length(unique(y)) == 2)  || (is.numeric(y) && length(unique(predictor)) == 2)) {
       # Continuous predictor with binary response - T-test
       test = t.test(predictor ~ y)
       test_results$p_value[i] = test$p.value
