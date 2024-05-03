@@ -128,7 +128,8 @@ autoLinearRegression <- function(X, y, bagging = FALSE, B = 100) {
     for (i in 1:B) {
       idx <- sample(1:n, n, replace = TRUE)
       df.b <- df[idx, ]
-      est.b[, i] <- coef(lm(y ~ (.), data = df.b))
+      model <- lm(y ~ ., data = df.b)
+      est.b[, i] <- coef(model)[names(model$coefficients) %in% colnames(df)]
     }
 
     sd.err <- apply(est.b, 1, sd)
@@ -151,4 +152,5 @@ autoLinearRegression <- function(X, y, bagging = FALSE, B = 100) {
 
   return(r)
 }
+
 
