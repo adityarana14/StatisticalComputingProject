@@ -83,6 +83,7 @@
 #'   v=mixed_data$Response_Binary
 #'   res = autoLinearRegression(mixed_data, mixed_data$Response_Continuous, bagging = TRUE)
 #' }
+#' @export
 
 
 autoLinearRegression <- function(X, y, bagging = FALSE, B = 100) {

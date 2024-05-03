@@ -1,4 +1,4 @@
-autoLassoRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FALSE, n_bags = 100) {
+autoLassoRegression <- function(X, y, lambda = NULL, family = NULL, bagging = FALSE, n_bags = 100) {
 
   if (is.data.frame(X)) {
     X <- as.matrix(X)
@@ -90,4 +90,18 @@ autoLassoRegression <- function(y, X, lambda = NULL, family = NULL, bagging = FA
     return(list(model = model, type = family, predictions = final_predictions))
   }
 }
+dat = read.csv("Price.csv")
+y <- dat$price
 
+# Define X as all columns except 'Group'
+X <- dat[, names(dat)!="price"]
+autoLassoRegression(X,y, bagging = TRUE)
+
+
+dat <- read.delim('https://www.ams.sunysb.edu/~pfkuan/Teaching/AMS597/Data/leukemiaDataSet.txt',
+                  header=T,sep='\t')
+y <- dat$Group
+
+# Define X as all columns except 'Group'
+X <- dat[, names(dat)!="Group"]
+autoLassoRegression(X,y, bagging = TRUE)

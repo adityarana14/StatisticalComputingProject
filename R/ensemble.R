@@ -29,31 +29,40 @@
 #'   )
 #'   print(ensemble_results$combined_predictions)
 #' }
-ensembleModel <- function(y, X, modelTypes, combine = "average") {
+ensembleModel <- function(X, y, modelTypes, combine = "average") {
   # List to store model predictions
   predictions_list <- list()
-  
+
   # Fit each specified model
   for (model_type in modelTypes) {
     if (model_type == "autoRidgeRegression") {
-      predictions <- autoRidgeRegression(y, X)$predictions
+      predictions <- autoRidgeRegression(X, y)$predictions
     } else if (model_type == "autoLassoRegression") {
-      predictions <- autoLassoRegression(y, X)$predictions
+      predictions <- autoLassoRegression(X, y)$predictions
     } else if (model_type == "Elastic_net") {
-      predictions <- Elastic_net(y, X)$predictions
+      predictions <- autoElasticRegression(X, y)$predictions
     } else if (model_type == "autoLinearRegression") {
-      predictions <- autoLinearRegression(y, X)$predictions
-    } else if (model_type == "dectree") {
-      predictions <- dectree(y, X)$predictions
+      predictions <- autoLinearRegression(X, y)$predictions
+    } else if (model_type == "autoLogisticRegression") {
+      predictions <- autoLogisticRegression(X, y)$fitted.values
+    }
+    else if (model_type == "dectree") {
+      predictions <- dectree(X, y)$predictions
     }
     predictions_list[[model_type]] <- predictions
   }
-  
+
   # Combine predictions
   combined_predictions <- NULL
   if (combine == "average") {
     combined_predictions <- Reduce("+", predictions_list) / length(predictions_list)
   }
-  
+
   return(list(models = predictions_list, combined_predictions = combined_predictions))
 }
+
+y<-data$y
+X<- data[, names(data)!="y"]
+y
+X
+ensembleModel(X,y,modelTypes = c("autoRidgeRegression", "autoLassoRegression", "Elastic_net"), combine = "average" )
