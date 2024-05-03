@@ -1,0 +1,83 @@
+---
+title: "Ensemble"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ensemble}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(TopK)
+```
+
+
+## Introduction
+
+The `ensembleModel` function facilitates the creation of ensemble models, which combine the predictions from various individual models to improve accuracy and robustness. This vignette demonstrates how to use the `ensembleModel` function, explaining its parameters, the process of fitting multiple models, and how predictions are combined.
+
+## Function Overview
+
+The `ensembleModel` function allows you to fit multiple models to a dataset and combine their predictions using a specified method. This ensemble approach aims to leverage the strengths of different models and reduce their weaknesses, providing more robust predictions.
+
+## Parameters
+
+- **X**: A matrix of predictors.
+- **y**: A vector representing the response variable, which can be binary or continuous.
+- **modelTypes**: A character vector specifying the types of models to include in the ensemble. Examples include "autoRidgeRegression", "autoLassoRegression", "Elastic_net", "autoLinearRegression", "autoLogisticRegression", and "random_forest".
+- **combine**: A character string indicating how to combine the model predictions. Currently, the supported method is "average".
+
+## Methods for Combining Predictions
+
+The `ensembleModel` function currently supports the "average" method for combining predictions, with potential expansion in future versions. Here's a brief overview of common methods to combine predictions in ensemble models:
+
+- **Average (Mean)**:
+  - This method calculates the mean of all predictions. It is the simplest and most common approach, providing a straightforward way to combine predictions.
+  - Formula: \( \text{average} = \frac{1}{n} \sum_{i=1}^{n} \text{predictions}_i \)
+
+- **Median**:
+  - This method calculates the median of all predictions, providing a robust approach to handle outliers.
+  - Formula: The middle value when all predictions are sorted.
+
+- **Weighted Average**:
+  - This method combines predictions with different weights, often used when some models are more reliable than others.
+  - Formula: \( \text{weighted average} = \frac{\sum_{i=1}^{n} \text{weights}_i \times \text{predictions}_i}{\sum_{i=1}^{n} \text{weights}_i} \)
+
+```{r}
+# Sample data for ensemble
+set.seed(123)
+data <- data.frame(
+  response = rnorm(100),
+  predictor1 = rnorm(100),
+  predictor2 = rnorm(100),
+  predictor3 = rnorm(100)
+)
+y <- data$response
+X <- data[, c("predictor1", "predictor2", "predictor3")]
+
+# Perform an ensemble with Ridge, Lasso, and Elastic Net
+ensemble_results <- ensembleModel(
+  X = X,
+  y = y,
+  modelTypes = c("autoRidgeRegression", "autoLassoRegression", "Elastic_net"),
+  combine = "average"
+)
+
+# Print combined predictions
+print("Combined predictions from ensemble:")
+print(ensemble_results$combined_predictions)
+
+```
+
+## Conclusion
+
+The ensembleModel function provides a convenient way to create ensemble models from multiple predictive models. This vignette has shown how to use the function, interpret its results, and understand the benefits of combining predictions from different models to create a more robust outcome.
+
+By leveraging the strengths of different models, ensemble approaches can improve accuracy and stability, reducing the impact of individual model variance. The "average" method is currently supported, but future versions may include other methods like "median" or "weighted average." Use the ensembleModel function to create customized ensembles with various predictive models and combine their predictions to achieve more reliable results.
