@@ -1,0 +1,138 @@
+---
+title: "autoRidgeRegresion"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{autoRidgeRegresion}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(TopK)
+```
+# Introduction
+
+The `autoRidgeRegression` function provides a simple way to perform ridge regression with optional bagging. Ridge regression is a type of linear regression that includes a penalty to reduce overfitting. Bagging (Bootstrap Aggregating) enhances model robustness by creating multiple bootstrapped samples and fitting a separate model to each. This vignette demonstrates how to use the function, its parameters, and the expected outputs.
+
+# Function Overview
+
+The `autoRidgeRegression` function fits a ridge regression model to a given dataset (`X`) and response variable (`y`). The key features include:
+
+- Automatic handling of missing data.
+- Automatic detection of the family (binary or continuous).
+- Optional bagging to generate robust results through multiple bootstrapped samples.
+- Calculation of importance scores to identify key predictors.
+
+# Parameters
+
+- `X`: A data frame or matrix containing the predictor variables.
+- `y`: A vector representing the response variable. It can be binary or continuous.
+- `lambda`: The ridge penalty parameter. If `NULL`, it will be computed using cross-validation.
+- `family`: The family of the response variable. Options are `"binary"` for logistic regression and `"gaussian"` for linear regression.
+- `bagging`: Logical indicating whether to use bagging (default is `FALSE`).
+- `n_bags`: The number of bootstrapped samples for bagging (default is `100`).
+
+# Handling Missing Data
+
+The function checks for missing data in `X` and `y`. If any missing values are found, it removes the corresponding rows, ensuring a clean dataset for model fitting.
+
+# Example data with missing values
+```{r}
+X <- data.frame(
+  x1 = c(1, 2, NA, 4, 5),
+  x2 = c(6, NA, 8, 9, 10)
+)
+y <- c(1, 0, 1, 0, NA)
+
+```
+
+
+# Applying the function
+
+```{r}
+result <- autoRidgeRegression(X, y, bagging = FALSE)
+```
+
+```{r}
+print("Number of rows after handling missing data:")
+print(nrow(result$model$X))
+```
+
+
+## Bagging Process
+
+If bagging = TRUE, the function creates multiple bootstrapped samples and fits a ridge regression model to each. This process allows you to assess the variability of coefficients across models and derive importance scores to identify which predictors are consistently selected.
+
+Bootstrapped Samples: Given a dataset with n observations, a bootstrapped sample is created by selecting n observations with replacement. This process allows some observations to be selected multiple times, while others might not be selected at all.
+Fitting Models: Once you have a set of bootstrapped samples, a model (in this case, ridge regression) is fitted to each sample. Because each sample is different due to random sampling, the resulting models can vary, reflecting different perspectives on the underlying data.
+Combining Results: After fitting models to multiple bootstrapped samples, the results are combined to create a more robust output. This combining process is central to bagging, where the goal is to reduce variance by leveraging the diversity of the bootstrapped samples.
+
+## Combining Results from Bagged Models
+In the autoRidgeRegression function, the results from bagged models are combined in the following ways:
+
+1.Predictions:
+Each bagged model is used to make predictions on the original dataset.
+The final predictions are calculated by taking the mean (using rowMeans()) of all predictions across the bagged models.
+Averaging predictions across bagged models leads to a more stable and robust prediction, as it mitigates individual model biases.
+2.Importance Scores:
+Importance scores are calculated by counting the number of times each predictor has a non-zero coefficient across all bagged models.
+This gives a sense of which predictors are consistently selected by the models, indicating their importance.
+Predictors with high importance scores are deemed more significant in influencing the outcome, while those with lower scores might be less impactful.
+3.Standard Deviations of Coefficients:
+The standard deviation of coefficients across bagged models can be used to assess the stability and variability of the coefficients.
+If a coefficient has a high standard deviation, it suggests that the models disagree about its importance, indicating greater uncertainty.
+Conversely, a low standard deviation indicates that the coefficient is stable across models, suggesting higher confidence in its significance.
+
+## Interpretation and Usage
+When using bagging in autoRidgeRegression, the key benefits are:
+
+1.Reduced Variance: By combining results from multiple models, bagging reduces the impact of individual model variance, leading to more robust predictions.
+2.Increased Stability: Averaging predictions across bagged models provides a more stable output, reducing the influence of outlier models.
+3.Understanding Predictor Importance: The importance scores derived from bagging provide insights into which predictors are consistently contributing to the model's outcome, helping with feature selection and model interpretation.
+```{r}
+# Example data
+X <- data.frame(
+  x1 = rnorm(100),
+  x2 = rnorm(100),
+  x3 = rnorm(100)
+)
+y <- rnorm(100)  # Continuous response
+
+# Fit ridge regression with bagging
+result_bagging <- autoRidgeRegression(X, y, bagging = TRUE)
+
+# Print importance scores
+print("Importance scores for predictors:")
+print(result_bagging$importance_scores)
+
+# Print final predictions
+print("Final predictions from bagged models:")
+print(result_bagging$predictions)
+
+```
+
+
+## Combining Results from Bagged Models
+
+When bagging is enabled, the function creates n_bags bootstrapped samples and fits a ridge regression model to each. The final predictions are derived by averaging the predictions across all bagged models. The importance scores represent the number of times each predictor is selected in the bagging process.
+
+```{r}
+# Example with 100 bootstrapped samples
+result_bagging <- autoRidgeRegression(X, y, bagging = TRUE, n_bags = 100)
+
+# Print the averaged predictions
+print("Final predictions from bagged models:")
+print(result_bagging$predictions)
+
+```
+
+## Final Thoughts
+
+The autoRidgeRegression function provides a convenient way to perform ridge regression with an optional bagging approach. This vignette has demonstrated how to use the function, interpret its results, and understand the role of bagging in providing robust model outputs. By examining the importance scores and final predictions, you can gain insights into which predictors are most significant and how the bagging process contributes to model robustness.
