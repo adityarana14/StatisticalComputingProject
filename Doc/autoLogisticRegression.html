@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>autoLogisticRegression</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">autoLogisticRegression</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(simpleEnsembleGroup09)</span></code></pre></div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>The <code>autoLogisticRegression</code> function is a versatile tool
+designed to automate logistic regression analysis…</p>
+<div id="features" class="section level2">
+<h2>Features</h2>
+<ul>
+<li><strong>Automated model selection</strong>: Identifies logistic
+regression as the preferred choice for binary response variables.</li>
+<li><strong>Dimensionality management</strong>: Handles situations where
+the number of predictors exceeds the number of observations.</li>
+<li><strong>Bagging</strong>: Incorporates bagging to generate reliable
+estimates of model parameters and mitigate overfitting.</li>
+</ul>
+</div>
+<div id="parameters" class="section level2">
+<h2>Parameters</h2>
+<ul>
+<li><code>X</code>: A matrix of predictor variables.</li>
+<li><code>y</code>: A response vector, typically binary.</li>
+<li><code>bagging</code>: A boolean flag indicating whether to apply
+bagging. Defaults to FALSE.</li>
+<li><code>B</code>: The number of bootstrap samples if bagging is
+enabled. Defaults to 100.</li>
+</ul>
+</div>
+<div id="returns" class="section level2">
+<h2>Returns</h2>
+<ul>
+<li>A list comprising:
+<ul>
+<li><code>glm</code>: The logistic regression model object.</li>
+<li><code>coefficients</code>: Estimates, standard errors, z-values, and
+p-values for each coefficient.</li>
+<li><code>fitted.values</code>: Predictions generated by the model.</li>
+</ul></li>
+</ul>
+</div>
+<div id="detailed-explanation-of-bagging-process" class="section level2">
+<h2>Detailed Explanation of Bagging Process</h2>
+<p>Bagging, or Bootstrap Aggregating, is a technique used to improve the
+stability and accuracy of machine learning algorithms. It involves
+generating multiple versions of a predictor and using these to get an
+aggregated predictor. In the context of regression, it helps in reducing
+variance and avoiding overfitting. Here’s a detailed breakdown of how
+the <code>autoLogisticRegression</code> function implements bagging
+based on the provided code:</p>
+<div id="step-1-initialize-the-bootstrap-procedure" class="section level3">
+<h3>Step 1: Initialize the Bootstrap Procedure</h3>
+<p>If the <code>bagging</code> parameter is set to <code>TRUE</code>,
+the function initializes the bagging process. The number of bootstrap
+samples, <code>B</code>, specifies how many times the data will be
+sampled to create bootstrap samples. Each bootstrap sample is created by
+sampling from the original data with replacement.</p>
+</div>
+<div id="step-2-bootstrap-sampling" class="section level3">
+<h3>Step 2: Bootstrap Sampling</h3>
+<p>For each of the <code>B</code> bootstrap samples: -
+<strong>Sampling</strong>: The function samples <code>n</code>
+observations from the data (where <code>n</code> is the number of
+observations in the original dataset), with replacement. This means some
+observations might be repeated in each bootstrap sample, while others
+might be omitted. - <strong>Model Fitting</strong>: A logistic model is
+fitted to each bootstrap sample using the same model formula used in the
+primary analysis. This involves recalculating the coefficients of the
+model based on the bootstrap sample.</p>
+</div>
+<div id="step-3-coefficient-calculation" class="section level3">
+<h3>Step 3: Coefficient Calculation</h3>
+<p>For each coefficient in the model: - <strong>Aggregating
+Estimates</strong>: The coefficients from each bootstrap model are
+stored in a matrix <code>est.b</code>. After fitting all <code>B</code>
+bootstrap models, this matrix contains the bootstrap estimates of each
+coefficient across all bootstrap samples. - <strong>Calculating Standard
+Error</strong>: The standard error of each coefficient is computed using
+the standard deviation of the bootstrap estimates. This gives a measure
+of the variability of the coefficient estimates across the bootstrap
+samples.</p>
+<p>The formula used to calculate the standard error <span class="math inline">\(SE(\beta_i)\)</span> for each coefficient is:
+<span class="math display">\[ SE(\beta_i) = \sqrt{\frac{1}{B-1}
+\sum_{b=1}^B (\beta_{i,b} - \overline{\beta_i})^2} \]</span> where <span class="math inline">\(\beta_{i,b}\)</span> is the estimate from the b-th
+bootstrap sample for the coefficient <span class="math inline">\(i\)</span>, and <span class="math inline">\(\overline{\beta_i}\)</span> is the mean of these
+bootstrap estimates.</p>
+</div>
+<div id="step-4-z-values-and-p-values" class="section level3">
+<h3>Step 4: Z-Values and P-Values</h3>
+<p>Using the standard errors: - <strong>Z-Values</strong>: Each
+coefficient’s Z-value is calculated by dividing the estimated
+coefficient by its standard error. This provides a standardized measure
+of the effect size relative to its variability. -
+<strong>P-Values</strong>: P-values are calculated to test the null
+hypothesis that each coefficient is zero. The p-values are derived from
+the Z-values using the cumulative distribution function of the standard
+normal distribution. The calculation is: <span class="math display">\[ P
+= 2 \times (1 - \Phi(|Z|)) \]</span> where <span class="math inline">\(\Phi\)</span> represents the cumulative
+distribution function for the standard normal distribution.</p>
+</div>
+<div id="step-5-summary-and-output" class="section level3">
+<h3>Step 5: Summary and Output</h3>
+<ul>
+<li><strong>Constructing Output</strong>: The function constructs a
+matrix containing the original estimates, standard errors, Z-values, and
+P-values for each coefficient.</li>
+<li><strong>Return</strong>: The function returns a list containing the
+logistic model object from the last bootstrap sample, the matrix of
+coefficients, and the fitted values calculated from the original data
+using the final model.</li>
+</ul>
+<p>This method of using bagging in logistic regression helps to address
+issues of model uncertainty, particularly in scenarios where the model
+might be sensitive to small data changes. By aggregating over multiple
+samples, the bagging process provides a more robust estimate of the
+model parameters, enhancing the generalization of the model to new
+data.</p>
+</div>
+</div>
+<div id="usage" class="section level2">
+<h2>Usage</h2>
+<div id="examples-utilizing-autologisticregression" class="section level3">
+<h3>Examples: Utilizing <code>autoLogisticRegression</code></h3>
+<div id="example-1-without-bagging" class="section level4">
+<h4>Example 1: Without Bagging</h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span>  <span class="co"># number of observations</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">5</span>    <span class="co"># number of predictors</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p), n, p)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, n, <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;Var&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(X))</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># Apply the function without bagging</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>result_without_bagging <span class="ot">&lt;-</span> <span class="fu">autoLogisticRegression</span>(<span class="at">X =</span> X, <span class="at">y =</span> y)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; Response variable y converted to numeric: 0 as 0, 1 as 1.</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="fu">print</span>(result_without_bagging<span class="sc">$</span>glm)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; Call:  glm(formula = y ~ ., family = binomial, data = df)</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt; (Intercept)         Var1         Var2         Var3         Var4         Var5  </span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt;   -0.031247    -0.060853    -0.067013    -0.008725    -0.349566     0.167342  </span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt; Degrees of Freedom: 99 Total (i.e. Null);  94 Residual</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; Null Deviance:       138.6 </span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt; Residual Deviance: 134.5     AIC: 146.5</span></span></code></pre></div>
+</div>
+<div id="example-2-with-bagging" class="section level4">
+<h4>Example 2: With Bagging</h4>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Apply the function with bagging</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>result_with_bagging <span class="ot">&lt;-</span> <span class="fu">autoLogisticRegression</span>(<span class="at">X =</span> X, <span class="at">y =</span> y, <span class="at">bagging =</span> <span class="cn">TRUE</span>, <span class="at">B =</span> <span class="dv">50</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; Response variable y converted to numeric: 0 as 0, 1 as 1.</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(result_with_bagging<span class="sc">$</span>fitted.values))  <span class="co"># Print first 5 fitted values</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4         5         6 </span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 0.5668468 0.5054111 0.5286203 0.5856738 0.5728094 0.3727550</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="fu">print</span>(result_with_bagging<span class="sc">$</span>coefficients)  <span class="co"># Print coefficients</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt;                 Estimate Std. Error     z value   p-value</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.031247015  0.1859919 -0.16800204 0.8665817</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; Var1        -0.060853418  0.2913641 -0.20885693 0.8345599</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; Var2        -0.067013255  0.2658118 -0.25210788 0.8009577</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; Var3        -0.008724697  0.1997117 -0.04368645 0.9651543</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; Var4        -0.349565695  0.2206059 -1.58457093 0.1130639</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; Var5         0.167341612  0.2571589  0.65073225 0.5152193</span></span></code></pre></div>
+<p>Conclusion The autoLogisticRegression function stands as a versatile
+tool for logistic regression analysis, accommodating diverse data types
+and incorporating advanced techniques such as bagging to enhance model
+accuracy and stability.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

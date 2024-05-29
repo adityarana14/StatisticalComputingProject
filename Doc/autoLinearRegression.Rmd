@@ -1,0 +1,112 @@
+---
+title: "autoLinearRegression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{autoLinearRegression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(simpleEnsembleGroup09)
+```
+# Introduction
+
+The `autoLinearRegression` function is designed to automate the process of performing linear regression analysis. It is equipped to handle binary and continuous response variables and can manage high-dimensional data through predictor selection. It also offers an option to use bagging to enhance model stability and accuracy.
+
+## Features
+
+- **Automated model selection**: Suggests logistic regression for binary response variables.
+- **Dimensionality check**: Handles cases where the number of predictors exceeds the number of observations.
+- **Bagging**: Optional bagging to compute robust estimates of model parameters.
+
+## Parameters
+
+- `X`: A matrix of predictors.
+- `y`: A response vector, which can be binary or continuous.
+- `bagging`: Boolean flag to indicate whether to perform bagging. Defaults to FALSE.
+- `B`: The number of bootstrap samples if bagging is enabled. Defaults to 100.
+
+## Returns
+
+- A list containing:
+  - `lm`: The linear model object.
+  - `coefficients`: Estimates, standard errors, z-values, and p-values for each coefficient.
+  - `fitted.values`: Predictions made using the model.
+
+## Detailed Explanation of Bagging Process
+
+Bagging, or Bootstrap Aggregating, is a technique used to improve the stability and accuracy of machine learning algorithms. It involves generating multiple versions of a predictor and using these to get an aggregated predictor. In the context of regression, it helps in reducing variance and avoiding overfitting. Here's a detailed breakdown of how the `autoLinearRegression` function implements bagging based on the provided code:
+
+### Step 1: Initialize the Bootstrap Procedure
+If the `bagging` parameter is set to `TRUE`, the function initializes the bagging process. The number of bootstrap samples, `B`, specifies how many times the data will be sampled to create bootstrap samples. Each bootstrap sample is created by sampling from the original data with replacement.
+
+### Step 2: Bootstrap Sampling
+For each of the `B` bootstrap samples:
+- **Sampling**: The function samples `n` observations from the data (where `n` is the number of observations in the original dataset), with replacement. This means some observations might be repeated in each bootstrap sample, while others might be omitted.
+- **Model Fitting**: A linear model is fitted to each bootstrap sample using the same model formula used in the primary analysis. This involves recalculating the coefficients of the model based on the bootstrap sample.
+
+### Step 3: Coefficient Calculation
+For each coefficient in the model:
+- **Aggregating Estimates**: The coefficients from each bootstrap model are stored in a matrix `est.b`. After fitting all `B` bootstrap models, this matrix contains the bootstrap estimates of each coefficient across all bootstrap samples.
+- **Calculating Standard Error**: The standard error of each coefficient is computed using the standard deviation of the bootstrap estimates. This gives a measure of the variability of the coefficient estimates across the bootstrap samples.
+
+The formula used to calculate the standard error \(SE(\beta_i)\) for each coefficient is:
+\[ SE(\beta_i) = \sqrt{\frac{1}{B-1} \sum_{b=1}^B (\beta_{i,b} - \overline{\beta_i})^2} \]
+where \(\beta_{i,b}\) is the estimate from the b-th bootstrap sample for the coefficient \(i\), and \(\overline{\beta_i}\) is the mean of these bootstrap estimates.
+
+### Step 4: Z-Values and P-Values
+Using the standard errors:
+- **Z-Values**: Each coefficient's Z-value is calculated by dividing the estimated coefficient by its standard error. This provides a standardized measure of the effect size relative to its variability.
+- **P-Values**: P-values are calculated to test the null hypothesis that each coefficient is zero. The p-values are derived from the Z-values using the cumulative distribution function of the standard normal distribution. The calculation is:
+\[ P = 2 \times (1 - \Phi(|Z|)) \]
+where \(\Phi\) represents the cumulative distribution function for the standard normal distribution.
+
+### Step 5: Summary and Output
+- **Constructing Output**: The function constructs a matrix containing the original estimates, standard errors, Z-values, and P-values for each coefficient.
+- **Return**: The function returns a list containing the linear model object from the last bootstrap sample, the matrix of coefficients, and the fitted values calculated from the original data using the final model.
+
+This method of using bagging in linear regression helps to address issues of model uncertainty, particularly in scenarios where the model might be sensitive to small data changes. By aggregating over multiple samples, the bagging process provides a more robust estimate of the model parameters, enhancing the generalization of the model to new data.
+
+## Usage
+
+### Examples: Using `autoLinearRegression` 
+
+### Example 1: Without Bagging
+
+Generate synthetic data and apply the function without bagging.
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+n <- 100  # number of observations
+p <- 5    # number of predictors
+X <- matrix(rnorm(n * p), n, p)
+y <- 1 + X[,1] - 2 * X[,2] + rnorm(n)
+colnames(X) <- paste0("Var", 1:ncol(X))
+
+# Apply the function without bagging
+result_without_bagging <- autoLinearRegression(X = X, y = y)
+print(result_without_bagging$lm)
+```
+
+### Example 2: With Bagging
+
+```{r}
+# Apply the function with bagging
+result_with_bagging <- autoLinearRegression(X = X, y = y, bagging = TRUE, B = 50)
+print(head(result_with_bagging$fitted.values))  # Print first 5 fitted values
+print(result_with_bagging$coefficients)  # Print coefficients
+
+```
+
+## Conclusion
+
+The autoLinearRegression function provides a flexible and powerful tool for regression analysis, accommodating different types of data and incorporating advanced techniques like bagging to improve model accuracy and stability.

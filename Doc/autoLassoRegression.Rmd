@@ -1,0 +1,131 @@
+---
+title: "autoLassoRegression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{autoLassoRegression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(simpleEnsembleGroup09)
+if (!requireNamespace("glmnet", quietly = TRUE)) {
+    # If not, install glmnet
+    install.packages("glmnet")
+    message("The 'glmnet' package was not installed. It has been installed now.")
+  }
+  library(glmnet)
+```
+
+## Introduction
+
+The `autoLassoRegression` function fits a Lasso regression model to a given dataset, with optional bagging to improve model stability and robustness. Lasso regression is a type of linear regression that uses L1 regularization to encourage sparsity, potentially leading to models with fewer predictors. This vignette demonstrates how to use the function with a focus on bagging, including detailed explanations and examples.
+
+## Function Overview
+
+The `autoLassoRegression` function can fit a Lasso regression model with or without bagging. Bagging (Bootstrap Aggregating) creates multiple bootstrapped samples, fits separate models to each, and combines results to generate a more robust outcome. This approach helps to reduce variance and increase the reliability of the model's predictions.
+
+## Parameters
+
+- **X**: A data frame or matrix containing the predictor variables.
+- **y**: A vector representing the response variable. It can be binary or continuous.
+- **lambda**: The Lasso penalty parameter. If `NULL`, it will be computed using cross-validation.
+- **family**: The type of response variable, `"binary"` for logistic regression or `"gaussian"` for linear regression.
+- **bagging**: Logical indicating whether to use bagging (default is `FALSE`).
+- **n_bags**: The number of bootstrapped samples for bagging (default is `100`).
+
+## Handling Missing Data
+
+The function checks for missing data in `X` and `y`. If there are missing values, the corresponding rows are removed, ensuring a clean dataset for model fitting.
+
+
+```{r}
+# Example data with missing values
+set.seed(123)
+  n <- 100
+  p <- 5
+  X <- matrix(rnorm(n * p), n, p)
+  y <- 1 + X[,1] - 2 * X[,2] + rnorm(n)
+  colnames(X) <- paste0("Var", 1:ncol(X))
+  
+  # Use the function without bagging
+  result_without_bagging <- autoRidgeRegression(y = y, X = X, family = 'continuous')
+  print(result_without_bagging$model)
+```
+
+## Bagging Process
+
+If bagging = TRUE, the function creates multiple bootstrapped samples and fits a lasso regression model to each. This process allows you to assess the variability of coefficients across models and derive importance scores to identify which predictors are consistently selected.
+
+**Bootstrapped Samples:** Given a dataset with n observations, a bootstrapped sample is created by selecting n observations with replacement. This process allows some observations to be selected multiple times, while others might not be selected at all.
+
+**Fitting Models:** Once you have a set of bootstrapped samples, a model (in this case, lasso regression) is fitted to each sample. Because each sample is different due to random sampling, the resulting models can vary, reflecting different perspectives on the underlying data.
+
+**Combining Results:** After fitting models to multiple bootstrapped samples, the results are combined to create a more robust output. This combining process is central to bagging, where the goal is to reduce variance by leveraging the diversity of the bootstrapped samples.
+
+
+## Combining Results from Bagged Models
+
+In the autoLassoRegression function, results from bagged models are combined as follows:
+
+Averaging Predictions:
+Each bagged model makes predictions on the original dataset.
+The final predictions are derived by averaging (rowMeans()) the predictions from all bagged models.
+Calculating Importance Scores:
+Importance scores represent the number of times each predictor is selected in the bagging process. A higher score indicates a predictor is consistently chosen in most models, suggesting its importance.
+These scores help identify key predictors and can be used to guide feature selection.
+
+## Interpretation and Usage
+When using bagging in `autoLassoRegression`, the key benefits are:
+
+1. **Reduced Variance**: By averaging predictions across multiple bagged Lasso models, you reduce the impact of individual model variance, leading to more robust results.
+
+2. **Increased Stability**: Bagging with Lasso creates more stable outcomes by reducing the influence of outlier models, contributing to consistent predictions.
+
+3. **Understanding Predictor Importance**: Bagging allows you to estimate importance scores by counting how many times each predictor is selected across all bagged models. This information helps identify which predictors are most important and guides feature selection.
+
+```{r}
+
+set.seed(123)
+  n <- 100
+  p <- 5
+  X <- matrix(rnorm(n * p), n, p)
+  y <- 1 + X[,1] - 2 * X[,2] + rnorm(n)
+  colnames(X) <- paste0("Var", 1:ncol(X))
+
+  # Use the function without bagging
+  result_without_bagging <- autoLassoRegression(y = y, X = X, family = 'continuous')
+  print(result_without_bagging$model)
+  
+```
+
+
+### Combining Results from Bagged Models
+In autoLassoRegression, when bagging is enabled, multiple bootstrapped samples are created and a Lasso regression model is fitted to each. The results are then combined to create a final prediction and importance scores.
+
+**Averaging Predictions:**
+The final predictions are derived by averaging (rowMeans()) the predictions from all bagged models. This approach reduces individual model variance, leading to more stable predictions.
+
+**Importance Scores:**
+
+The importance scores represent the number of times each predictor is selected across all bagged models. This information can help identify key predictors and guide feature selection in Lasso regression, where variable selection is crucial.
+
+
+```{r}
+# Example with 100 bootstrapped samples
+result_with_bagging <- autoLassoRegression(y = y, X = X, family = 'continuous', bagging = TRUE, n_bags = 50)
+  print(head(result_with_bagging$predictions))  # Print first 5 predictions
+  print(result_with_bagging$importance_scores)
+
+```
+
+## Final Thoughts
+
+The autoLassoRegression function provides a straightforward way to fit Lasso regression with an optional bagging approach. This vignette has demonstrated how to use the function, interpret results, and understand the role of bagging in creating robust model outputs. By exploring the importance scores and final predictions, you can gain insights into which predictors play a significant role and how bagging enhances stability and robustness in Lasso regression.

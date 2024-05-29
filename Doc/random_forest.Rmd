@@ -1,0 +1,107 @@
+---
+title: "random_forest"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{random_forest}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(simpleEnsembleGroup09)
+```
+
+# Introduction
+
+This vignette describes a suite of functions designed to streamline the process of fitting Random Forest models. These functions ensure data compatibility, handle missing values, perform hyperparameter tuning, and fit models with optimized or specified parameters. This comprehensive guide explains each function's parameters and includes a detailed example of the model fitting function.
+
+## Functions Overview
+
+1. **`check_input`**: Ensures compatibility between predictor matrix `X` and response vector `y` and handles missing values.
+2. **`random_forest_random_search`**: Optimizes hyperparameters for Random Forest models through a random search technique.
+3. **`random_forest`**: Fits a Random Forest model using tuned or specified hyperparameters, ensuring data integrity before model fitting.
+
+# Function: check_input
+
+## Description
+
+This function validates the compatibility of the predictor matrix `X` and the response vector `y` for predictive modeling. It checks for equal numbers of rows and handles missing values by removing any rows with missing data in either `X` or `y`.
+
+## Parameters
+
+- `y`: Response variable vector.
+- `X`: Predictor variables matrix or data frame.
+
+## Returns
+
+- A list containing the cleaned response vector `y` and predictor matrix `X`.
+
+
+# Function: random_forest_random_search
+
+## Description
+
+Conducts a random search over potential hyperparameters for a Random Forest model to identify the best combination for maximizing model accuracy. It randomly selects values for the number of trees, the number of variables considered at each split, and the minimum size of terminal nodes.
+
+## Parameters
+`y`: The response variable vector.
+`X`: The predictor variables matrix.
+`n_iter`: The number of iterations for the random search.
+`test_size`: The proportion of the dataset to hold out for testing.
+
+## Returns
+A list containing the best hyperparameters found and the corresponding accuracy.
+Usage
+
+# Function: random_forest
+
+## Description
+
+Fits a Random Forest model to the dataset using specified or automatically tuned hyperparameters. The function begins by ensuring data consistency through check_input, then optionally performs hyperparameter tuning using random_forest_random_search before fitting the model.
+
+## Parameters
+
+`y`: The response vector, either numeric or factor.
+`X`: The predictor matrix.
+`ntree`: Optional; the number of trees in the forest. If NULL, hyperparameters are tuned automatically.
+`mtry`: Optional; the number of variables considered at each split. If NULL, hyperparameters are tuned automatically.
+`nodesize`: Optional; the minimum size of terminal nodes. If NULL, hyperparameters are tuned automatically.
+
+## Returns
+
+A list containing the fitted model object, accuracy of the model (if applicable), and other performance metrics (if applicable).
+
+## Detailed Workflow
+
+`Data Preparation`: The check_input function is invoked to ensure that the predictor and response variables are compatible and free from missing values.
+`Hyperparameter Tuning`: If ntree, mtry, or nodesize are not provided, random_forest_random_search is used to find optimal settings based on a subset of the data.
+`Model Fitting`: Depending on the nature of y:
+For binary responses, the model is fit as a classification task.
+For continuous responses, the model is fit as a regression task.
+
+## Usage Example
+
+```{r}
+data <- read.csv("https://raw.githubusercontent.com/adityarana14/MainData/main/Price.csv", header = TRUE)
+y <- data$price  # Select the response variable column
+X <- data[, !names(data) %in% c("price")]
+result <- random_forest(y, X)
+model <- result$model
+accuracy <- result$accuracy
+other_metrics <- result$other_metrics
+print(model)
+print(accuracy)
+print(other_metrics)
+```
+
+
+## Conclusion
+
+The described functions provide a robust toolkit for Random Forest modeling, from initial data checks to hyperparameter optimization and final model fitting. This suite of functions is ideal for ensuring high-quality model fits, suitable for both academic research and professional data analysis projects.

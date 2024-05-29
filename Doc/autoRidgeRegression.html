@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>autoRidgeRegression</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">autoRidgeRegression</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(simpleEnsembleGroup09)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;glmnet&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    <span class="co"># If not, install glmnet</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    <span class="fu">install.packages</span>(<span class="st">&quot;glmnet&quot;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">&quot;The &#39;glmnet&#39; package was not installed. It has been installed now.&quot;</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  }</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="fu">library</span>(glmnet)</span></code></pre></div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>The <code>autoRidgeRegression</code> function provides a simple way
+to perform ridge regression with optional bagging. Ridge regression is a
+type of linear regression that includes a penalty to reduce overfitting.
+Bagging (Bootstrap Aggregating) enhances model robustness by creating
+multiple bootstrapped samples and fitting a separate model to each. This
+vignette demonstrates how to use the function, its parameters, and the
+expected outputs.</p>
+</div>
+<div id="function-overview" class="section level1">
+<h1>Function Overview</h1>
+<p>The <code>autoRidgeRegression</code> function fits a ridge regression
+model to a given dataset (<code>X</code>) and response variable
+(<code>y</code>). The key features include:</p>
+<ul>
+<li>Automatic handling of missing data.</li>
+<li>Automatic detection of the family (binary or continuous).</li>
+<li>Optional bagging to generate robust results through multiple
+bootstrapped samples.</li>
+<li>Calculation of importance scores to identify key predictors.</li>
+</ul>
+</div>
+<div id="parameters" class="section level1">
+<h1>Parameters</h1>
+<ul>
+<li><code>X</code>: A data frame or matrix containing the predictor
+variables.</li>
+<li><code>y</code>: A vector representing the response variable. It can
+be binary or continuous.</li>
+<li><code>lambda</code>: The ridge penalty parameter. If
+<code>NULL</code>, it will be computed using cross-validation.</li>
+<li><code>family</code>: The family of the response variable. Options
+are <code>&quot;binary&quot;</code> for logistic regression and
+<code>&quot;gaussian&quot;</code> for linear regression.</li>
+<li><code>bagging</code>: Logical indicating whether to use bagging
+(default is <code>FALSE</code>).</li>
+<li><code>n_bags</code>: The number of bootstrapped samples for bagging
+(default is <code>100</code>).</li>
+</ul>
+</div>
+<div id="handling-missing-data" class="section level1">
+<h1>Handling Missing Data</h1>
+<p>The function checks for missing data in <code>X</code> and
+<code>y</code>. If any missing values are found, it removes the
+corresponding rows, ensuring a clean dataset for model fitting.</p>
+</div>
+<div id="example-data-with-missing-values" class="section level1">
+<h1>Example data with missing values</h1>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p), n, p)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  y <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">+</span> X[,<span class="dv">1</span>] <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> X[,<span class="dv">2</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;Var&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="fu">ncol</span>(X))</span></code></pre></div>
+</div>
+<div id="applying-the-function" class="section level1">
+<h1>Applying the function</h1>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Use the function without bagging</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  result_without_bagging <span class="ot">&lt;-</span> <span class="fu">autoRidgeRegression</span>(<span class="at">y =</span> y, <span class="at">X =</span> X, <span class="at">family =</span> <span class="st">&#39;continuous&#39;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; Provided family and detected type match:  continuous </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; Optimal lambda determined by CV: 0.1862332</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="fu">print</span>(result_without_bagging<span class="sc">$</span>model)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; Call:  glmnet(x = X, y = y, family = glmnet_family, alpha = 0, lambda = lambda) </span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt;   Df  %Dev Lambda</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; 1  5 83.56 0.1862</span></span></code></pre></div>
+<div id="bagging-process" class="section level2">
+<h2>Bagging Process</h2>
+<p>If bagging = TRUE, the function creates multiple bootstrapped samples
+and fits a ridge regression model to each. This process allows you to
+assess the variability of coefficients across models and derive
+importance scores to identify which predictors are consistently
+selected.</p>
+<p>Bootstrapped Samples: Given a dataset with n observations, a
+bootstrapped sample is created by selecting n observations with
+replacement. This process allows some observations to be selected
+multiple times, while others might not be selected at all. Fitting
+Models: Once you have a set of bootstrapped samples, a model (in this
+case, ridge regression) is fitted to each sample. Because each sample is
+different due to random sampling, the resulting models can vary,
+reflecting different perspectives on the underlying data. Combining
+Results: After fitting models to multiple bootstrapped samples, the
+results are combined to create a more robust output. This combining
+process is central to bagging, where the goal is to reduce variance by
+leveraging the diversity of the bootstrapped samples.</p>
+</div>
+<div id="combining-results-from-bagged-models" class="section level2">
+<h2>Combining Results from Bagged Models</h2>
+<p>In the autoRidgeRegression function, the results from bagged models
+are combined in the following ways:</p>
+<p>1.Predictions: Each bagged model is used to make predictions on the
+original dataset. The final predictions are calculated by taking the
+mean (using rowMeans()) of all predictions across the bagged models.
+Averaging predictions across bagged models leads to a more stable and
+robust prediction, as it mitigates individual model biases. 2.Importance
+Scores: Importance scores are calculated by counting the number of times
+each predictor has a non-zero coefficient across all bagged models. This
+gives a sense of which predictors are consistently selected by the
+models, indicating their importance. Predictors with high importance
+scores are deemed more significant in influencing the outcome, while
+those with lower scores might be less impactful. 3.Standard Deviations
+of Coefficients: The standard deviation of coefficients across bagged
+models can be used to assess the stability and variability of the
+coefficients. If a coefficient has a high standard deviation, it
+suggests that the models disagree about its importance, indicating
+greater uncertainty. Conversely, a low standard deviation indicates that
+the coefficient is stable across models, suggesting higher confidence in
+its significance.</p>
+</div>
+<div id="interpretation-and-usage" class="section level2">
+<h2>Interpretation and Usage</h2>
+<p>When using bagging in autoRidgeRegression, the key benefits are:</p>
+<p>1.Reduced Variance: By combining results from multiple models,
+bagging reduces the impact of individual model variance, leading to more
+robust predictions. 2.Increased Stability: Averaging predictions across
+bagged models provides a more stable output, reducing the influence of
+outlier models. 3.Understanding Predictor Importance: The importance
+scores derived from bagging provide insights into which predictors are
+consistently contributing to the model’s outcome, helping with feature
+selection and model interpretation.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a> <span class="co"># Use the function with bagging</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  result_with_bagging <span class="ot">&lt;-</span> <span class="fu">autoRidgeRegression</span>(<span class="at">y =</span> y, <span class="at">X =</span> X, <span class="at">family =</span> <span class="st">&#39;continuous&#39;</span>, <span class="at">bagging =</span> <span class="cn">TRUE</span>, <span class="at">n_bags =</span> <span class="dv">50</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; Provided family and detected type match:  continuous </span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; Bagging complete. Averaged predictions from 50 models.</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">head</span>(result_with_bagging<span class="sc">$</span>predictions))  <span class="co"># Print first 5 predictions</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] 1.6764964 0.1326471 2.7244697 1.6823992 2.8541892 2.2205368</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="fu">print</span>(result_with_bagging<span class="sc">$</span>importance_scores)</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; Var1 Var2 Var3 Var4 Var5 </span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt;   50   50   50   50   50</span></span></code></pre></div>
+</div>
+<div id="combining-results-from-bagged-models-1" class="section level2">
+<h2>Combining Results from Bagged Models</h2>
+<p>When bagging is enabled, the function creates n_bags bootstrapped
+samples and fits a ridge regression model to each. The final predictions
+are derived by averaging the predictions across all bagged models. The
+importance scores represent the number of times each predictor is
+selected in the bagging process.</p>
+</div>
+<div id="final-thoughts" class="section level2">
+<h2>Final Thoughts</h2>
+<p>The autoRidgeRegression function provides a convenient way to perform
+ridge regression with an optional bagging approach. This vignette has
+demonstrated how to use the function, interpret its results, and
+understand the role of bagging in providing robust model outputs. By
+examining the importance scores and final predictions, you can gain
+insights into which predictors are most significant and how the bagging
+process contributes to model robustness.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
