@@ -116,7 +116,9 @@ autoRidgeRegression <- function(X, y, lambda = NULL, family = NULL, bagging = FA
       predictions[, i] <- predict(model, newx = X, type = "response", s = lambda)
     }
     # Average the predictions across all bags
+
     final_predictions <- rowMeans(predictions)
+
     cat("Bagging complete. Averaged predictions from", n_bags, "models.\n")
     # Report importance scores for each variable
     names(importance_scores) <- colnames(X)
@@ -134,4 +136,14 @@ autoRidgeRegression <- function(X, y, lambda = NULL, family = NULL, bagging = FA
   }
 }
 
+dat = read.csv("Price.csv")
+y <- dat$price
 
+# Define X as all columns except 'Group'
+X <- dat[, names(dat)!="price"]
+autoRidgeRegression(X,y, bagging = TRUE)
+
+
+y<-data$y
+X<- data[, names(data)!="y"]
+autoRidgeRegression(X,y)$predictions

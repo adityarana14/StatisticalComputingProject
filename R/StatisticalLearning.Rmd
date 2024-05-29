@@ -46,7 +46,7 @@ The package includes several regression functions to suit different analysis nee
 - **autoLinearRegression**:
   - A basic linear regression function, ideal for simple linear relationships between predictors and a continuous response variable. It provides a straightforward way to fit and evaluate linear models.
 
-  - For more information, see [Vignette on Linear Regression](./vignettes/autoLogisticRegression.html).
+  - For more information, see [Vignette on Linear Regression](./vignettes/autoLinearRegression.html).
   
 - **autoLogisticRegression**:
   - Fits a logistic regression model, typically used for binary classification tasks. Logistic regression estimates the probability of a binary outcome, allowing for the calculation of odds ratios and other related metrics.
@@ -56,7 +56,7 @@ The package includes several regression functions to suit different analysis nee
 - **random_forest**:
   - Implements Random Forest, an ensemble method based on multiple decision trees. It can be used for both regression and classification, offering flexibility and robustness through ensemble learning.
   - Random Forest is known for its ability to handle complex relationships and provide feature importance metrics.
-  - For more information, see [Vignette on Random Forest](./vignettes/randomForest.html).
+  - For more information, see [Vignette on Random Forest](./vignettes/random_forest.html).
 
 ## Conclusion
 

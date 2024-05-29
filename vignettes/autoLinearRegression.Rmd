@@ -1,0 +1,116 @@
+---
+title: "autoLinearRegression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{autoLinearRegression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(StatisticalComputingProject)
+```
+
+
+### Overview:
+
+Function Description: autoLinearRegression automates the process of linear regression on a dataset X with a response variable y. It suggests logistic regression for binary response variables and adjusts for scenarios where there are more predictors than observations by selecting significant predictors. The function can perform ordinary least squares regression or, optionally, use bagging to enhance the stability and accuracy of the regression coefficients.
+
+### Parameters:
+
+X: A matrix of predictors.
+
+y: A response vector, which can be binary or continuous.
+bagging: A boolean indicating whether to use bagging (default is FALSE).
+
+B: The number of bootstrap samples for bagging (default is 100).
+
+### Main Steps:
+
+Handling Missing Data: The function first checks and handles missing data in both X and y.
+Response Variable Check: It checks if y is binary and suggests using logistic regression.
+
+Dimension Check: If there are more predictors than observations, it prompts the user to select a number of significant predictors.
+
+Regression Analysis: It performs a linear regression using the lm function.
+
+Bagging Option: If enabled, it performs bagging to calculate estimates, standard errors, z-values, and p-values for each coefficient.
+
+### Outputs:
+
+#### A list containing:
+
+lm: The fitted linear model object.
+
+coefficients: A matrix with estimates, standard errors, z-values, and p-values for each coefficient.
+
+fitted.values: The predicted values from the model.
+
+### Examples:
+
+```{r}
+set.seed(42)  # For reproducibility
+  # Number of samples
+  num_samples <- 100
+
+  # Create continuous predictors
+  continuous_predictors <- data.frame(
+    Age = rnorm(num_samples, mean = 30, sd = 10),  # Normally distributed
+    Salary = rnorm(num_samples, mean = 50000, sd = 15000),  # Normally distributed
+    Height = rnorm(num_samples, mean = 170, sd = 10)  # Normally distributed
+  )
+
+  # Create discrete predictors
+  discrete_predictors <- data.frame(
+    Children = rpois(num_samples, lambda = 2),  # Poisson distribution
+    Siblings = sample(0:5, num_samples, replace = TRUE)  # Random integers
+  )
+
+  # Create binary predictors
+  binary_predictors <- data.frame(
+    OwnsCar = rbinom(num_samples, 1, 0.5),  # 0 or 1 with equal probability
+    Gender = factor(sample(c("Male", "Female"), num_samples, replace = TRUE)),  # Factor with two levels
+    Married = sample(c("Yes", "No"), num_samples, replace = TRUE)  # Factor with two levels
+  )
+
+  # Combine all predictors into one data frame
+  mixed_data <- cbind(continuous_predictors, discrete_predictors, binary_predictors)
+
+  # Check the first few rows of the dataset
+  head(mixed_data)
+  dim(mixed_data)
+
+  Response_Continuous <- 10000 + 100 * mixed_data$Salary + rnorm(nrow(mixed_data), mean = 0, sd = 5000)
+  Response_Binary <- ifelse(mixed_data$Age > 30, 1, 0)
+
+  res_continuous_bagging = autoLinearRegression(mixed_data, Response_Continuous, bagging = TRUE)
+  res_continous = autoLinearRegression(mixed_data, Response_Continuous, bagging = FALSE)
+  
+```
+
+### Output Interpretation
+
+The output of the linear regression model provides information about:
+
+Coefficients: These represent the estimated relationships between each predictor variable and the response variable. Each coefficient indicates the expected change in the response variable for a one-unit change in the corresponding predictor, assuming all other predictors remain constant.
+
+Standard Errors: These indicate the uncertainty or variability associated with each coefficient estimate. Smaller standard errors suggest more precise estimates.
+
+t-values (z-values): These measure how many standard deviations the coefficient estimates are from zero. Higher absolute t-values suggest stronger evidence against the null hypothesis (that the true coefficient is zero).
+
+p-values: These indicate the probability of observing the data, given that the null hypothesis (that the true coefficient is zero) is true. Lower p-values (typically below a significance level like 0.05) suggest that the coefficient is statistically significant.
+
+Fitted Values: These are the predicted values of the response variable based on the model. Each value corresponds to a particular observation in the dataset.
+
+Overall, the output helps assess the significance of each predictor variable in explaining the variation in the response variable and provides insight into the overall goodness-of-fit of the model.
+
+### Conclusion
+
+This function is valuable for researchers and data analysts looking for a robust and automated approach to linear regression, especially in situations where manual model specification and diagnostics are challenging due to the size or complexity of the data.

@@ -95,4 +95,6 @@ autoLogisticRegression <- function(X, y, bagging = FALSE, B = 100) {
   return(r)
 }
 
-
+y<-data$y
+X<- data[, names(data)!="y"]
+autoLogisticRegression(X,y, bagging = TRUE)
